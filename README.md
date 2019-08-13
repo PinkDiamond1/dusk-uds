@@ -23,7 +23,7 @@ use dusk_uds::{Message, State, UnixDomainSocket};
 use std::io::{Read, Write};
 use std::sync::mpsc;
 
-fn handler<S: Read + Write>(socket: S, sender: mpsc::Sender<Message>) {
+fn handler<S: Read + Write>(socket: S, sender: mpsc::Sender<Message>) -> S {
     let mut socket = socket;
     let mut buf = [0u8; 4];
 
@@ -35,6 +35,8 @@ fn handler<S: Read + Write>(socket: S, sender: mpsc::Sender<Message>) {
     sender
         .send(Message::ChangeState(State::ShouldQuit))
         .unwrap();
+
+    socket
 }
 
 fn main() {

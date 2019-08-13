@@ -116,17 +116,20 @@ impl UnixDomainSocket {
     /// If the socket fails, the loop wont be interrupted, and the error will be reported to the
     /// log facade.
     ///
+    /// Consume the [`UnixStream`], and return it.
+    ///
     /// Minimal example:
     /// ```
     /// use dusk_uds::UnixDomainSocket;
     ///
-    /// UnixDomainSocket::from("/dev/null").bind(move |_stream, _sender| {
+    /// UnixDomainSocket::from("/dev/null").bind(move |stream, _sender| {
     ///     // Code goes here
+    ///     stream
     /// }).unwrap_or(());
     /// ```
     pub fn bind<F>(&self, handler: F) -> Result<(), IoError>
     where
-        F: FnOnce(UnixStream, mpsc::Sender<Message>),
+        F: FnOnce(UnixStream, mpsc::Sender<Message>) -> UnixStream,
         F: Send + 'static,
         F: Copy + 'static,
     {

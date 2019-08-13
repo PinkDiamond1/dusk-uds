@@ -1,6 +1,6 @@
 [package]
 name = "dusk-uds"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Victor Lopez <victor@dusk.network>"]
 edition = "2018"
 description = "Minimalistic boilerplate for UnixListener bindings."
