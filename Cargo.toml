@@ -1,0 +1,14 @@
+[package]
+name = "dusk-uds"
+version = "0.1.0"
+authors = ["Victor Lopez <victor@dusk.network>"]
+edition = "2018"
+description = "Minimalistic boilerplate for UnixListener bindings."
+license = "MIT"
+repository = "https://github.com/dusk-network/dusk-uds"
+documentation = "https://docs.rs/dusk-uds/"
+readme = "README.md"
+keywords = ["io", "uds", "unix", "networking"]
+
+[dependencies]
+log = "0.4"
