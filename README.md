@@ -19,32 +19,74 @@ dusk-uds = "0.1"
 ## Example
 
 ```rust
-use dusk_uds::{Message, State, UnixDomainSocket};
-use std::io::{Read, Write};
-use std::sync::mpsc;
+use std::{
+    future::Future,
+    io::{Read, Write},
+    os::unix::net::UnixStream,
+    pin::Pin,
+    task::Context,
+    task::Poll,
+};
 
-fn handler<S: Read + Write>(socket: S, sender: mpsc::Sender<Message>) -> S {
-    let mut socket = socket;
-    let mut buf = [0u8; 4];
+use dusk_uds::*;
 
-    // UnixListener implements Read + Write
-    socket.read_exact(&mut buf).unwrap();
-    socket.write_all(b"Some reply").unwrap();
+// This structure will handle the incoming sockets
+struct MyFuture {
+    socket: Option<UnixStream>,
+}
 
-    // Ask the listener to stop after the next iteration
-    sender
-        .send(Message::ChangeState(State::ShouldQuit))
-        .unwrap();
+// Optional implementation of default to facilitate the clone
+impl Default for MyFuture {
+    fn default() -> Self {
+        MyFuture { socket: None }
+    }
+}
 
-    socket
+// Clone implementation is mandatory, for this instance will be shared amongst the worker threads
+// with provided ownership.
+impl Clone for MyFuture {
+    fn clone(&self) -> Self {
+        MyFuture::default()
+    }
+}
+
+// Allow the UDS provider to send the socket to the structure before the poll
+impl TaskProvider for MyFuture {
+    fn set_socket(&mut self, socket: UnixStream) {
+        self.socket.replace(socket);
+    }
+}
+
+// Standard future implementation.
+//
+// Will read a byte from the socket, multiply it by 2, and write the result.
+//
+// If the provided byte is 0, will quit
+impl Future for MyFuture {
+    type Output = Message;
+
+    fn poll(mut self: Pin<&mut Self>, _cx: &mut Context) -> Poll<Self::Output> {
+        let mut buffer = [0x00u8];
+        let socket = self.socket.as_mut().unwrap();
+
+        socket.read_exact(&mut buffer).unwrap();
+        buffer[0] *= 2;
+
+        if buffer[0] == 0 {
+            return Poll::Ready(Message::ShouldQuit);
+        }
+
+        socket.write_all(&buffer).unwrap();
+        Poll::Ready(Message::Success)
+    }
 }
 
 fn main() {
-    // Set the correct path
-    // /dev/null will fail, unless your OS is broken :)
-    let uds = UnixDomainSocket::from("/dev/null").bind(handler);
-    if let Err(_e) = uds {
-        // Report
-    }
+    // The first parameter is the path of the socket
+    // The second, the options, if there is the need to customize the UDS somehow
+    // The third, is the Future implementation that will handle the incoming sockets
+    UnixDomainSocket::new("/tmp/dusk-socket", None, MyFuture::default())
+        .bind()
+        .unwrap();
 }
 ```
