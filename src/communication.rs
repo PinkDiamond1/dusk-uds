@@ -15,4 +15,8 @@ pub enum Message {
     ShouldQuit,
     /// Execution with no errors
     Success,
+    /// Execution with errors
+    Error,
+    /// Reschedule socket
+    Reschedule,
 }

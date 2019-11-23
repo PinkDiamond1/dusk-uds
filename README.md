@@ -3,7 +3,7 @@
 [![Crate](https://img.shields.io/crates/v/dusk-uds.svg)](https://crates.io/crates/dusk-uds)
 [![Documentation](https://docs.rs/dusk-uds/badge.svg)](https://docs.rs/dusk-uds)
 
-Minimalistic boilerplate for [`UnixListener`] bindings.
+Minimalistic boilerplate for [`std::os::unix::net::UnixListener`] bindings.
 
 Complies with the log facade.
 

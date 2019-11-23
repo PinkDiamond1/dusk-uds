@@ -35,7 +35,7 @@ impl<T: TaskProvider> UnixDomainSocket<T> {
     /// Will remove the [`UnixDomainSocket::path`], if it exists, so it cant bind properly to that
     /// location.
     ///
-    /// If the future returns a [`Message::ShouldQuit`], the worker threads will be finished after
+    /// If the future returns a [`crate::Message::ShouldQuit`], the worker threads will be finished after
     /// the current queue of sockets and the main loop will end.
     pub fn bind(self) -> Result<(), IoError> {
         // Grant the provided path is available to the process
